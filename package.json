@@ -1,0 +1,46 @@
+{
+  "name": "learning-engine",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@ai-sdk/google": "latest",
+    "@ai-sdk/react": "^3.0.118",
+    "ai": "latest",
+    "clsx": "latest",
+    "framer-motion": "latest",
+    "katex": "latest",
+    "nanoid": "latest",
+    "next": "latest",
+    "react": "^19",
+    "react-dom": "^19",
+    "tailwind-merge": "latest",
+    "zustand": "latest"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "latest",
+    "@next/eslint-plugin-next": "^16.1.6",
+    "@tailwindcss/postcss": "^4",
+    "@types/katex": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.57.0",
+    "@typescript-eslint/parser": "^8.57.0",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "tailwindcss": "^4",
+    "typescript": "latest"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}
