@@ -88,15 +88,15 @@
 
 | Feature | Status | Details |
 |---------|--------|---------|
-| **Memory extraction pipeline** | ❌ | After each conversation turn, run parallel `generateObject()` to extract facts, preferences, goals, entities |
-| **Memory types** | ❌ | Facts, preferences, episodic, semantic, procedural, goals, relationships |
-| **Vector storage (pgvector)** | ❌ | Embed memories for semantic search, store in PostgreSQL with pgvector |
-| **Memory retrieval** | ❌ | Before each response, embed query → search long-term memory → inject top-K into context |
-| **Memory CRUD** | ❌ | Store, recall, forget, update operations |
+| **Memory extraction pipeline** | ✅ | After each conversation turn, `generateObject()` with Zod schema extracts facts, preferences, goals, skill_levels, episodic memories |
+| **Memory types** | ✅ | Facts, preferences, goals, skill_level, episodic |
+| **Vector storage (pgvector)** | ✅ | `gemini-embedding-001` (768-dim) with pgvector IVFFlat index for cosine similarity search |
+| **Memory retrieval** | ✅ | Before each response, embed query → cosine search → top-8 → inject into system prompt |
+| **Memory CRUD** | ✅ | Store, list, delete individual, delete all — via REST API `/api/memories` |
 | **Memory consolidation** | ❌ | Periodic reflection to merge and summarize memories |
-| **Memory panel in sidebar** | ❌ | User can view, edit, delete what the agent remembers |
+| **Memory panel in sidebar** | ✅ | Expandable panel shows all memories with type icons, delete buttons, refresh, clear all |
 | **User model** | ❌ | Structured understanding of user: knowledge level, preferences, learning style |
-| **Memory-aware system prompts** | ❌ | Inject relevant memories and user model into agent system prompts |
+| **Memory-aware system prompts** | ✅ | Relevant memories injected into agent system prompts with instructions to personalize |
 
 ---
 
@@ -268,10 +268,10 @@ visualizations           — id, message_id, type, params, renderer, interactive
 ### Phase 3 — Database & Auth ✅ DONE
 > Supabase setup, Drizzle ORM, user accounts, encrypted API key storage, conversation persistence server-side
 
-### Phase 4 — Memory System ← **START HERE**
+### Phase 4 — Memory System ✅ DONE
 > Memory extraction, pgvector, retrieval, injection into context, memory panel UI
 
-### Phase 5 — Learning Capability
+### Phase 5 — Learning Capability ← **START HERE**
 > Exercise generation, answer checking, lesson player, progress tracking, spaced repetition
 
 ### Phase 6 — Visualizations v1
@@ -412,7 +412,7 @@ src/
 | Chat UI (streaming, conversations, sidebar) | ✅ Done |
 | Rich chat (markdown, code, LaTeX) | ✅ Done |
 | Database & Auth | ✅ Done |
-| Memory System | ❌ Not started |
+| Memory System | ✅ Done |
 | Learning Capability (exercises, lessons, progress) | ❌ Not started |
 | STEM Visualizations | ❌ Not started |
 | Code Execution | ❌ Not started |
@@ -421,4 +421,4 @@ src/
 | Canvas / Artifacts | ❌ Not started |
 | Developer API | ❌ Not started |
 
-**~30% of the planned platform is built.** The foundation, core chat loop, and rich chat rendering are solid. The next highest-impact features to implement are: **(1) Memory system**, **(2) Learning capability with exercises**, **(3) STEM visualizations**.
+**~40% of the planned platform is built.** The foundation, core chat loop, and rich chat rendering are solid. The next highest-impact features to implement are: **(1) Memory system**, **(2) Learning capability with exercises**, **(3) STEM visualizations**.

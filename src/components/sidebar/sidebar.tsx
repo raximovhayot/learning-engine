@@ -6,6 +6,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MemoryPanel } from "./memory-panel";
 
 export function Sidebar() {
   const router = useRouter();
@@ -182,6 +183,8 @@ export function Sidebar() {
             </div>
           ))}
         </div>
+
+        <MemoryPanel />
 
         <div className="mb-3">
           <p

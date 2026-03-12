@@ -27,6 +27,13 @@ Learning Engine is a Next.js 16 AI-powered interactive learning platform with mu
 - **Hydration guard**: Pages check `hydrated` from the Zustand store before redirecting, to avoid a race condition where `user` is null before localStorage rehydrates.
 - **API key encryption**: Uses AES-256-CBC via `src/lib/crypto.ts`. The `API_KEY_ENCRYPTION_SECRET` env var must be a 64-char hex string.
 
+### Memory System (Phase 4)
+
+- **Extraction**: After each chat response finishes (`onFinish` callback in `streamText`), the system calls `generateObject()` with a Zod schema to extract facts, preferences, goals, skill levels, and episodic memories from the conversation turn.
+- **Embeddings**: Uses `gemini-embedding-001` with `outputDimensionality: 768` (passed via `providerOptions.google`). The pgvector column is `vector(768)` with an IVFFlat index.
+- **Retrieval**: Before each agent response, the system embeds the user's query, performs cosine similarity search on the memories table, and injects the top-8 relevant memories into the agent's system prompt.
+- **Memory panel**: Expandable sidebar component (`src/components/sidebar/memory-panel.tsx`) that fetches from `/api/memories`.
+
 ### Caveats
 
 - Chat functionality requires a valid `GOOGLE_GENERATIVE_AI_API_KEY` env var OR a user-provided key via the Settings UI. Without it, chat requests return 401.

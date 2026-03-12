@@ -28,9 +28,9 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { apiKey },
+        body: { apiKey, conversationId },
       }),
-    [apiKey]
+    [apiKey, conversationId]
   );
 
   const { messages, status, sendMessage, error } = useChat({
