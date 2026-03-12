@@ -1,4 +1,4 @@
-import { streamText } from "ai";
+import { streamText, convertToModelMessages } from "ai";
 import { createProvider } from "@/lib/ai/provider";
 import { getAgent } from "@/lib/ai/agents";
 import { routeToAgent } from "@/lib/ai/orchestrator";
@@ -16,13 +16,23 @@ export async function POST(req: Request) {
     );
   }
 
-  const lastUserMessage = messages
-    .filter((m: { role: string }) => m.role === "user")
+  const modelMessages = await convertToModelMessages(messages);
+
+  const lastUserMessage = modelMessages
+    .filter((m) => m.role === "user")
     .pop();
+  const lastUserText =
+    lastUserMessage && typeof lastUserMessage.content === "string"
+      ? lastUserMessage.content
+      : lastUserMessage &&
+          Array.isArray(lastUserMessage.content) &&
+          lastUserMessage.content[0]?.type === "text"
+        ? lastUserMessage.content[0].text
+        : "";
 
   let agentId = requestedAgentId;
-  if (!agentId && lastUserMessage) {
-    agentId = await routeToAgent(lastUserMessage.content, apiKey);
+  if (!agentId && lastUserText) {
+    agentId = await routeToAgent(lastUserText, apiKey);
   }
   agentId = agentId || "general";
 
@@ -32,7 +42,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model: google(agent.model),
     system: agent.systemPrompt,
-    messages,
+    messages: modelMessages,
     temperature: agent.temperature,
     maxOutputTokens: 4096,
   });
@@ -41,7 +51,7 @@ export async function POST(req: Request) {
     headers: {
       "X-Agent-Id": agentId,
       "X-Agent-Name": agent.name,
-      "X-Agent-Avatar": agent.avatar,
+      "X-Agent-Avatar": encodeURIComponent(agent.avatar),
     },
   });
 }
