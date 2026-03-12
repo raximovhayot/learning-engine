@@ -35,7 +35,8 @@ export async function POST(request: Request) {
       maxOutputTokens: 2048,
     });
 
-    const slug = `${topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}-${nanoid(6)}`;
+    const slugBase = topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "course";
+    const slug = `${slugBase}-${nanoid(6)}`;
 
     const course = await createCourse({
       title: courseStructure.title,

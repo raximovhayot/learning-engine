@@ -46,10 +46,8 @@ export function LessonPlayer({
     if (currentStep > 0) setCurrentStep((s) => s - 1);
   };
 
-  const handleExerciseComplete = (isCorrect: boolean) => {
-    if (isCorrect) {
-      setCompletedSteps((prev) => new Set([...prev, currentStep]));
-    }
+  const handleExerciseComplete = (_isCorrect: boolean) => {
+    setCompletedSteps((prev) => new Set([...prev, currentStep]));
   };
 
   if (finished) {

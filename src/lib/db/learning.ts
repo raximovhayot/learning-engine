@@ -1,5 +1,5 @@
 import { db } from ".";
-import { eq, and, lte, asc, sql } from "drizzle-orm";
+import { eq, and, lte, asc, sql, isNull } from "drizzle-orm";
 import {
   courses,
   units,
@@ -116,10 +116,10 @@ export async function upsertLessonProgress(data: NewLearningProgress) {
   const conditions = [
     eq(learningProgress.userId, data.userId),
     eq(learningProgress.courseId, data.courseId),
+    data.lessonId
+      ? eq(learningProgress.lessonId, data.lessonId)
+      : isNull(learningProgress.lessonId),
   ];
-  if (data.lessonId) {
-    conditions.push(eq(learningProgress.lessonId, data.lessonId));
-  }
 
   const existing = await db
     .select()
