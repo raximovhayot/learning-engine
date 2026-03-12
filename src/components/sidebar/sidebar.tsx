@@ -26,36 +26,41 @@ export function Sidebar() {
   const agents = getAgentList();
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user: authUser } }) => {
-      if (authUser) {
-        setUser({
-          id: authUser.id,
-          email: authUser.email || "",
-          name: authUser.user_metadata?.name,
-        });
-        loadConversations();
-      } else {
-        setUser(null);
-      }
-    });
+    let subscription: { unsubscribe: () => void } | null = null;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || "",
-          name: session.user.user_metadata?.name,
-        });
-        loadConversations();
-      } else {
-        setUser(null);
-      }
-    });
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user: authUser } }) => {
+        if (authUser) {
+          setUser({
+            id: authUser.id,
+            email: authUser.email || "",
+            name: authUser.user_metadata?.name,
+          });
+          loadConversations();
+        } else {
+          setUser(null);
+        }
+      });
 
-    return () => subscription.unsubscribe();
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || "",
+            name: session.user.user_metadata?.name,
+          });
+          loadConversations();
+        } else {
+          setUser(null);
+        }
+      });
+      subscription = data.subscription;
+    } catch {
+      setUser(null);
+    }
+
+    return () => subscription?.unsubscribe();
   }, [setUser, loadConversations]);
 
   const handleNewChat = async () => {
