@@ -13,22 +13,26 @@ export default function ChatPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { conversations, setActiveConversation, apiKey } = useChatStore();
+  const { conversations, setActiveConversation, apiKey, user, hydrated } =
+    useChatStore();
 
   useEffect(() => {
-    const exists = conversations.find((c) => c.id === id);
-    if (!exists) {
-      router.push("/");
-      return;
+    if (!hydrated) return;
+    if (!user) {
+      const exists = conversations.find((c) => c.id === id);
+      if (!exists) {
+        router.push("/");
+        return;
+      }
     }
     setActiveConversation(id);
-  }, [id, conversations, setActiveConversation, router]);
+  }, [id, conversations, setActiveConversation, router, user, hydrated]);
 
   useEffect(() => {
-    if (!apiKey) {
+    if (hydrated && !apiKey && !user) {
       router.push("/settings");
     }
-  }, [apiKey, router]);
+  }, [apiKey, user, hydrated, router]);
 
   return (
     <div className="flex h-screen">

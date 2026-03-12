@@ -1,10 +1,13 @@
 "use client";
 
+import { MarkdownRenderer } from "./markdown-renderer";
+
 interface MessageBubbleProps {
   role: "user" | "assistant" | "system";
   content: string;
   agentName?: string;
   agentAvatar?: string;
+  agentDomain?: string;
   isStreaming?: boolean;
 }
 
@@ -13,6 +16,7 @@ export function MessageBubble({
   content,
   agentName,
   agentAvatar,
+  agentDomain,
   isStreaming,
 }: MessageBubbleProps) {
   if (role === "user") {
@@ -37,23 +41,41 @@ export function MessageBubble({
         {agentAvatar || "🧠"}
       </div>
       <div className="flex-1 min-w-0">
-        {agentName && (
-          <p className="text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>
-            {agentName}
-          </p>
-        )}
-        <div
-          className="text-sm leading-relaxed whitespace-pre-wrap break-words"
-          style={{ color: "var(--text-primary)" }}
-        >
-          {content}
-          {isStreaming && !content && (
-            <span className="inline-flex gap-1 ml-1">
-              <span className="typing-dot w-1.5 h-1.5 rounded-full inline-block" style={{ background: "var(--text-muted)" }} />
-              <span className="typing-dot w-1.5 h-1.5 rounded-full inline-block" style={{ background: "var(--text-muted)" }} />
-              <span className="typing-dot w-1.5 h-1.5 rounded-full inline-block" style={{ background: "var(--text-muted)" }} />
+        <div className="flex items-center gap-2 mb-1">
+          {agentName && (
+            <span
+              className="text-xs font-medium"
+              style={{ color: "var(--text-muted)" }}
+            >
+              {agentName}
             </span>
           )}
+          {agentDomain && (
+            <span className="agent-badge">{agentDomain}</span>
+          )}
+        </div>
+        <div
+          className="text-sm leading-relaxed break-words"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {content ? (
+            <MarkdownRenderer content={content} />
+          ) : isStreaming ? (
+            <span className="inline-flex gap-1 ml-1">
+              <span
+                className="typing-dot w-1.5 h-1.5 rounded-full inline-block"
+                style={{ background: "var(--text-muted)" }}
+              />
+              <span
+                className="typing-dot w-1.5 h-1.5 rounded-full inline-block"
+                style={{ background: "var(--text-muted)" }}
+              />
+              <span
+                className="typing-dot w-1.5 h-1.5 rounded-full inline-block"
+                style={{ background: "var(--text-muted)" }}
+              />
+            </span>
+          ) : null}
         </div>
       </div>
     </div>

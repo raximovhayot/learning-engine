@@ -2,31 +2,35 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useChatStore } from "@/lib/store/chat-store";
 import { MessageBubble } from "./message-bubble";
 import { InputBar } from "./input-bar";
+
+interface AgentMetadata {
+  agentId?: string;
+  agentName?: string;
+  agentAvatar?: string;
+  agentDomain?: string;
+}
 
 interface ChatInterfaceProps {
   conversationId: string;
 }
 
 export function ChatInterface({ conversationId }: ChatInterfaceProps) {
-  const { apiKey, updateConversationTitle } = useChatStore();
+  const { apiKey, updateConversationTitle, updateServerConversationTitle, user } =
+    useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [agentInfo, setAgentInfo] = useState<{
-    name: string;
-    avatar: string;
-  } | null>(null);
   const titleUpdatedRef = useRef(false);
 
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { apiKey },
+        body: { apiKey, conversationId },
       }),
-    [apiKey]
+    [apiKey, conversationId]
   );
 
   const { messages, status, sendMessage, error } = useChat({
@@ -52,23 +56,16 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         if (content) {
           const title =
             content.length > 40 ? content.slice(0, 40) + "..." : content;
-          updateConversationTitle(conversationId, title);
+          if (user) {
+            updateServerConversationTitle(conversationId, title);
+          } else {
+            updateConversationTitle(conversationId, title);
+          }
           titleUpdatedRef.current = true;
         }
       }
     }
   }, [messages, conversationId, updateConversationTitle]);
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastAssistant = [...messages]
-        .reverse()
-        .find((m) => m.role === "assistant");
-      if (lastAssistant && !agentInfo) {
-        setAgentInfo({ name: "Learning Engine", avatar: "🧠" });
-      }
-    }
-  }, [messages, agentInfo]);
 
   const handleSend = (content: string) => {
     sendMessage({ text: content });
@@ -83,6 +80,22 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
     );
   };
 
+  const getAgentMeta = (
+    message: (typeof messages)[number]
+  ): AgentMetadata => {
+    const meta = message.metadata as AgentMetadata | undefined;
+    if (meta?.agentName) return meta;
+    return {
+      agentName: "Learning Engine",
+      agentAvatar: "🧠",
+    };
+  };
+
+  const lastAssistantMeta = useMemo(() => {
+    const last = [...messages].reverse().find((m) => m.role === "assistant");
+    return last ? getAgentMeta(last) : null;
+  }, [messages]);
+
   return (
     <div className="flex-1 flex flex-col h-screen">
       <header
@@ -92,18 +105,22 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
           background: "var(--bg-secondary)",
         }}
       >
-        {agentInfo && (
+        {lastAssistantMeta?.agentName ? (
           <div className="flex items-center gap-2">
-            <span>{agentInfo.avatar}</span>
+            <span>{lastAssistantMeta.agentAvatar || "🧠"}</span>
             <span
               className="text-sm font-medium"
               style={{ color: "var(--text-primary)" }}
             >
-              {agentInfo.name}
+              {lastAssistantMeta.agentName}
             </span>
+            {lastAssistantMeta.agentDomain && (
+              <span className="agent-badge">
+                {lastAssistantMeta.agentDomain}
+              </span>
+            )}
           </div>
-        )}
-        {!agentInfo && (
+        ) : (
           <span className="text-sm" style={{ color: "var(--text-muted)" }}>
             🧠 New conversation
           </span>
@@ -137,7 +154,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 <button
                   key={q}
                   onClick={() => handleSend(q)}
-                  disabled={!apiKey}
+                  disabled={!apiKey && !user}
                   className="px-3 py-2 rounded-xl text-xs transition-colors border cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                   style={{
                     borderColor: "var(--border)",
@@ -158,19 +175,20 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
           </div>
         )}
 
-        {messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            role={message.role as "user" | "assistant"}
-            content={getMessageText(message)}
-            agentName={
-              message.role === "assistant" ? agentInfo?.name : undefined
-            }
-            agentAvatar={
-              message.role === "assistant" ? agentInfo?.avatar : undefined
-            }
-          />
-        ))}
+        {messages.map((message) => {
+          const meta =
+            message.role === "assistant" ? getAgentMeta(message) : {};
+          return (
+            <MessageBubble
+              key={message.id}
+              role={message.role as "user" | "assistant"}
+              content={getMessageText(message)}
+              agentName={meta.agentName}
+              agentAvatar={meta.agentAvatar}
+              agentDomain={meta.agentDomain}
+            />
+          );
+        })}
 
         {isLoading &&
           (messages.length === 0 ||
@@ -178,8 +196,8 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <MessageBubble
               role="assistant"
               content=""
-              agentName={agentInfo?.name || "Thinking..."}
-              agentAvatar={agentInfo?.avatar || "🧠"}
+              agentName={lastAssistantMeta?.agentName || "Thinking..."}
+              agentAvatar={lastAssistantMeta?.agentAvatar || "🧠"}
               isStreaming
             />
           )}
@@ -200,7 +218,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <InputBar onSend={handleSend} isLoading={isLoading} disabled={!apiKey} />
+      <InputBar onSend={handleSend} isLoading={isLoading} disabled={!apiKey && !user} />
     </div>
   );
 }

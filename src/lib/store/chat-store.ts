@@ -3,17 +3,32 @@ import { persist } from "zustand/middleware";
 import { nanoid } from "nanoid";
 import type { Conversation } from "@/lib/types";
 
+interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+}
+
 interface ChatState {
   conversations: Conversation[];
   activeConversationId: string | null;
   apiKey: string;
+  user: AuthUser | null;
+  hydrated: boolean;
 
+  setHydrated: (v: boolean) => void;
+  setUser: (user: AuthUser | null) => void;
   setApiKey: (key: string) => void;
   createConversation: () => string;
   setActiveConversation: (id: string | null) => void;
   updateConversationTitle: (id: string, title: string) => void;
   deleteConversation: (id: string) => void;
   getActiveConversation: () => Conversation | undefined;
+
+  loadConversations: () => Promise<void>;
+  createServerConversation: () => Promise<string>;
+  deleteServerConversation: (id: string) => Promise<void>;
+  updateServerConversationTitle: (id: string, title: string) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -22,6 +37,11 @@ export const useChatStore = create<ChatState>()(
       conversations: [],
       activeConversationId: null,
       apiKey: "",
+      user: null,
+      hydrated: false,
+
+      setHydrated: (v: boolean) => set({ hydrated: v }),
+      setUser: (user: AuthUser | null) => set({ user }),
 
       setApiKey: (key: string) => set({ apiKey: key }),
 
@@ -67,6 +87,76 @@ export const useChatStore = create<ChatState>()(
           (c) => c.id === state.activeConversationId
         );
       },
+
+      loadConversations: async () => {
+        try {
+          const res = await fetch("/api/conversations");
+          if (!res.ok) return;
+          const data = await res.json();
+          const mapped: Conversation[] = data.map(
+            (c: { id: string; title: string; lastAgentId: string | null; createdAt: string; updatedAt: string }) => ({
+              id: c.id,
+              title: c.title,
+              agentId: c.lastAgentId,
+              messages: [],
+              createdAt: new Date(c.createdAt).getTime(),
+              updatedAt: new Date(c.updatedAt).getTime(),
+            })
+          );
+          set({ conversations: mapped });
+        } catch {
+          // Fall back to local conversations
+        }
+      },
+
+      createServerConversation: async () => {
+        try {
+          const res = await fetch("/api/conversations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          });
+          if (!res.ok) return get().createConversation();
+          const conv = await res.json();
+          const mapped: Conversation = {
+            id: conv.id,
+            title: conv.title,
+            agentId: null,
+            messages: [],
+            createdAt: new Date(conv.createdAt).getTime(),
+            updatedAt: new Date(conv.updatedAt).getTime(),
+          };
+          set((state) => ({
+            conversations: [mapped, ...state.conversations],
+            activeConversationId: conv.id,
+          }));
+          return conv.id;
+        } catch {
+          return get().createConversation();
+        }
+      },
+
+      deleteServerConversation: async (id: string) => {
+        get().deleteConversation(id);
+        try {
+          await fetch(`/api/conversations/${id}`, { method: "DELETE" });
+        } catch {
+          // Already removed from local state
+        }
+      },
+
+      updateServerConversationTitle: async (id: string, title: string) => {
+        get().updateConversationTitle(id, title);
+        try {
+          await fetch(`/api/conversations/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title }),
+          });
+        } catch {
+          // Already updated in local state
+        }
+      },
     }),
     {
       name: "learning-engine-store",
@@ -74,6 +164,9 @@ export const useChatStore = create<ChatState>()(
         conversations: state.conversations,
         apiKey: state.apiKey,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated(true);
+      },
     }
   )
 );

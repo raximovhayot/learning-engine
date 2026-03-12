@@ -23,10 +23,10 @@
 | ESLint (flat config) | ✅ | `eslint.config.mjs` with `@next/eslint-plugin-next` (Next.js 16 removed `next lint`) |
 | Vercel AI SDK v5 | ✅ | `ai`, `@ai-sdk/google`, `@ai-sdk/react` |
 | Gemini 3.1 models | ✅ | `gemini-3.1-flash-lite-preview` as default for all agents |
-| **Database (Supabase + pgvector)** | ❌ | Planned: PostgreSQL for users, conversations, memories, progress. pgvector for semantic memory search. Currently using Zustand + localStorage only |
-| **Drizzle ORM** | ❌ | Planned: type-safe ORM with migration support. Schema designed but not implemented |
-| **Authentication (Supabase Auth)** | ❌ | Planned: sign up / login / OAuth. Currently no auth — single-user localStorage |
-| **API key encryption** | ❌ | Planned: server-side encrypted storage. Currently stored in plaintext in localStorage |
+| **Database (Supabase + pgvector)** | ✅ | PostgreSQL via local Supabase. Drizzle ORM with profiles, api_keys, conversations, messages, orchestrator_logs tables. pgvector for Phase 4 |
+| **Drizzle ORM** | ✅ | Type-safe ORM with migration support. Schema in `src/lib/db/schema.ts`, migrations in `drizzle/` |
+| **Authentication (Supabase Auth)** | ✅ | Sign up / login pages. Middleware protects routes. Auto-creates profile on registration via DB trigger |
+| **API key encryption** | ✅ | AES-256-CBC server-side encryption. Keys stored encrypted in `api_keys` table with separate IV |
 
 ---
 
@@ -73,12 +73,12 @@
 | Error display | ✅ | Red banner with error message |
 | Conversation CRUD | ✅ | Create, list, switch, delete in sidebar |
 | Auto-title from first message | ✅ | First user message becomes conversation title |
-| **Markdown rendering** | ❌ | Planned: render markdown, code blocks with syntax highlighting, LaTeX math |
+| **Markdown rendering** | ✅ | `react-markdown` + `remark-gfm` + `remark-math` + `rehype-katex` for rich text, code, and LaTeX |
 | **Inline tool results** | ❌ | Planned: render tool call outputs (exercises, visualizations, code) inline in chat |
 | **`streamUI` components** | ❌ | Planned: stream React components from server (exercises, diagrams) |
 | **File upload / image input** | ❌ | Planned: photograph a math problem, AI parses and teaches |
 | **Message editing / regeneration** | ❌ | Planned: edit past messages, regenerate responses |
-| **Per-message agent attribution** | ❌ | Planned: each assistant message shows which agent generated it |
+| **Per-message agent attribution** | ✅ | Each assistant message shows agent name, avatar, and domain badge via stream `messageMetadata` |
 
 ---
 
@@ -88,15 +88,15 @@
 
 | Feature | Status | Details |
 |---------|--------|---------|
-| **Memory extraction pipeline** | ❌ | After each conversation turn, run parallel `generateObject()` to extract facts, preferences, goals, entities |
-| **Memory types** | ❌ | Facts, preferences, episodic, semantic, procedural, goals, relationships |
-| **Vector storage (pgvector)** | ❌ | Embed memories for semantic search, store in PostgreSQL with pgvector |
-| **Memory retrieval** | ❌ | Before each response, embed query → search long-term memory → inject top-K into context |
-| **Memory CRUD** | ❌ | Store, recall, forget, update operations |
+| **Memory extraction pipeline** | ✅ | After each conversation turn, `generateObject()` with Zod schema extracts facts, preferences, goals, skill_levels, episodic memories |
+| **Memory types** | ✅ | Facts, preferences, goals, skill_level, episodic |
+| **Vector storage (pgvector)** | ✅ | `gemini-embedding-001` (768-dim) with pgvector IVFFlat index for cosine similarity search |
+| **Memory retrieval** | ✅ | Before each response, embed query → cosine search → top-8 → inject into system prompt |
+| **Memory CRUD** | ✅ | Store, list, delete individual, delete all — via REST API `/api/memories` |
 | **Memory consolidation** | ❌ | Periodic reflection to merge and summarize memories |
-| **Memory panel in sidebar** | ❌ | User can view, edit, delete what the agent remembers |
+| **Memory panel in sidebar** | ✅ | Expandable panel shows all memories with type icons, delete buttons, refresh, clear all |
 | **User model** | ❌ | Structured understanding of user: knowledge level, preferences, learning style |
-| **Memory-aware system prompts** | ❌ | Inject relevant memories and user model into agent system prompts |
+| **Memory-aware system prompts** | ✅ | Relevant memories injected into agent system prompts with instructions to personalize |
 
 ---
 
@@ -172,7 +172,7 @@
 |---------|--------|---------|
 | Code agent (Ada) with system prompt | ✅ | Can discuss code in plain text |
 | **Sandboxed code execution** | ❌ | Planned: Sandpack (browser-side) for JS/TS/Python/React |
-| **Inline code blocks with syntax highlighting** | ❌ | Planned: render fenced code blocks with proper highlighting |
+| **Inline code blocks with syntax highlighting** | ✅ | `react-syntax-highlighter` (Prism + oneDark theme) with language labels and copy button |
 | **Run button on code blocks** | ❌ | Planned: execute code inline and show output |
 | **Algorithm visualization** | ❌ | Planned: step-through sorting, tree traversal, etc. |
 | **Code challenges** | ❌ | Planned: AI generates coding challenges, evaluates solutions |
@@ -225,7 +225,7 @@
 
 ## 12. Database Schema
 
-> Schema is **designed but ❌ not implemented** (no Supabase/Drizzle setup).
+> Schema is **✅ implemented** (Phase 3 tables: profiles, api_keys, conversations, messages, orchestrator_logs). Remaining tables are for future phases.
 
 ### Planned Tables
 
@@ -262,16 +262,16 @@ visualizations           — id, message_id, type, params, renderer, interactive
 ### Phase 1 — Foundation ✅ DONE
 > Project scaffold, chat, BYOK, multi-agent routing
 
-### Phase 2 — Rich Chat ← **START HERE**
+### Phase 2 — Rich Chat ✅ DONE
 > Markdown rendering, code syntax highlighting, LaTeX math (KaTeX), per-message agent badges
 
-### Phase 3 — Database & Auth
+### Phase 3 — Database & Auth ✅ DONE
 > Supabase setup, Drizzle ORM, user accounts, encrypted API key storage, conversation persistence server-side
 
-### Phase 4 — Memory System
+### Phase 4 — Memory System ✅ DONE
 > Memory extraction, pgvector, retrieval, injection into context, memory panel UI
 
-### Phase 5 — Learning Capability
+### Phase 5 — Learning Capability ← **START HERE**
 > Exercise generation, answer checking, lesson player, progress tracking, spaced repetition
 
 ### Phase 6 — Visualizations v1
@@ -319,7 +319,8 @@ src/
 │   ├── chat/
 │   │   ├── chat-interface.tsx          ✅
 │   │   ├── input-bar.tsx               ✅
-│   │   ├── message-bubble.tsx          ✅  (needs markdown/LaTeX/code rendering)
+│   │   ├── message-bubble.tsx          ✅  (markdown/LaTeX/code rendering + agent badges)
+│   │   ├── markdown-renderer.tsx       ✅  ReactMarkdown + KaTeX + syntax highlighting
 │   │   ├── tool-result.tsx             ❌
 │   │   └── stream-renderer.tsx         ❌
 │   ├── sidebar/
@@ -378,15 +379,21 @@ src/
 | Package | Intended Use |
 |---------|-------------|
 | `framer-motion` | Celebration animations, lesson transitions, visualization animations |
-| `katex` | LaTeX math rendering in messages and exercises |
+
+### Installed in Phase 2
+| Package | Purpose |
+|---------|---------|
+| `react-markdown` | Markdown rendering in chat messages |
+| `remark-gfm` | GitHub Flavored Markdown (tables, strikethrough, etc.) |
+| `remark-math` | Parse LaTeX math expressions in markdown |
+| `rehype-katex` | Render LaTeX math via KaTeX |
+| `react-syntax-highlighter` | Code block syntax highlighting (Prism + oneDark theme) |
 
 ### Not yet installed (needed for future phases)
 | Package | Phase | Purpose |
 |---------|-------|---------|
 | `@supabase/supabase-js` | 3 | Database, auth, realtime |
 | `drizzle-orm` + `drizzle-kit` | 3 | Type-safe ORM + migrations |
-| `react-markdown` + `remark-gfm` + `remark-math` + `rehype-katex` | 2 | Markdown + LaTeX rendering |
-| `react-syntax-highlighter` or `shiki` | 2 | Code syntax highlighting |
 | `@codesandbox/sandpack-react` | 7 | In-browser code execution |
 | `d3` | 6 | 2D data visualizations |
 | `three` + `@react-three/fiber` + `@react-three/drei` | 6 | 3D visualizations |
@@ -403,9 +410,9 @@ src/
 | Foundation (Next.js, Tailwind, AI SDK, BYOK) | ✅ Done |
 | Multi-agent orchestrator (4 agents, auto-routing) | ✅ Done |
 | Chat UI (streaming, conversations, sidebar) | ✅ Done |
-| Rich chat (markdown, code, LaTeX) | ❌ Not started |
-| Database & Auth | ❌ Not started |
-| Memory System | ❌ Not started |
+| Rich chat (markdown, code, LaTeX) | ✅ Done |
+| Database & Auth | ✅ Done |
+| Memory System | ✅ Done |
 | Learning Capability (exercises, lessons, progress) | ❌ Not started |
 | STEM Visualizations | ❌ Not started |
 | Code Execution | ❌ Not started |
@@ -414,4 +421,4 @@ src/
 | Canvas / Artifacts | ❌ Not started |
 | Developer API | ❌ Not started |
 
-**~15% of the planned platform is built.** The foundation and core chat loop are solid. The next highest-impact features to implement are: **(1) Rich chat rendering**, **(2) Database + Auth**, **(3) Memory system**, **(4) Learning capability with exercises**.
+**~40% of the planned platform is built.** The foundation, core chat loop, and rich chat rendering are solid. The next highest-impact features to implement are: **(1) Memory system**, **(2) Learning capability with exercises**, **(3) STEM visualizations**.

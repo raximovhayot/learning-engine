@@ -7,17 +7,23 @@ import { useChatStore } from "@/lib/store/chat-store";
 
 export default function Home() {
   const router = useRouter();
-  const { apiKey, createConversation } = useChatStore();
+  const { apiKey, user, hydrated, createConversation, createServerConversation } =
+    useChatStore();
 
   useEffect(() => {
-    if (!apiKey) {
+    if (hydrated && !apiKey && !user) {
       router.push("/settings");
     }
-  }, [apiKey, router]);
+  }, [apiKey, user, hydrated, router]);
 
-  const handleNewChat = () => {
-    const id = createConversation();
-    router.push(`/chat/${id}`);
+  const handleNewChat = async () => {
+    if (user) {
+      const id = await createServerConversation();
+      router.push(`/chat/${id}`);
+    } else {
+      const id = createConversation();
+      router.push(`/chat/${id}`);
+    }
   };
 
   return (
@@ -35,8 +41,8 @@ export default function Home() {
           className="text-base mb-8 max-w-md text-center"
           style={{ color: "var(--text-secondary)" }}
         >
-          AI-powered interactive learning with multi-agent orchestration.
-          Each question is routed to a specialist: Math, Physics, Code, or General.
+          AI-powered interactive learning with multi-agent orchestration. Each
+          question is routed to a specialist: Math, Physics, Code, or General.
         </p>
         <button
           onClick={handleNewChat}
@@ -51,7 +57,7 @@ export default function Home() {
         >
           Start Learning →
         </button>
-        {!apiKey && (
+        {hydrated && !apiKey && !user && (
           <p className="mt-4 text-xs" style={{ color: "var(--warning)" }}>
             ⚠️ Add your Google AI Studio API key in Settings first
           </p>
