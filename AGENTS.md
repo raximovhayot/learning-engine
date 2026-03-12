@@ -40,3 +40,11 @@ Learning Engine is a Next.js 16 AI-powered interactive learning platform with mu
 - The `eslint-config-next` package is installed but the ESLint config (`eslint.config.mjs`) uses the flat config format with `@next/eslint-plugin-next` directly, since `next lint` was removed in Next.js 16.
 - When restarting the dev server, ensure no stale `next-server` processes are holding port 3000 and remove `.next/dev/lock` if it exists.
 - The Settings UI requires any non-empty string saved to enable the chat input. When `GOOGLE_GENERATIVE_AI_API_KEY` is set as an env var, the actual key value entered in the UI doesn't matter — the env var is used for all API calls.
+
+### Service startup sequence
+
+1. **Docker** must be running before Supabase can start.
+2. **Supabase** (`./node_modules/supabase/bin/supabase start`) — pulls and runs ~15 containers. First run takes a while for image downloads. Outputs the Supabase keys needed for `.env.local`.
+3. **Drizzle migrations**: The Supabase migrations (`supabase/migrations/`) create all tables (including pgvector/memories) when Supabase starts. The Drizzle migration (`drizzle/0000_absurd_multiple_man.sql`) creates the same tables, so on a fresh Supabase you must mark it as already applied in `drizzle.__drizzle_migrations` before running `npx drizzle-kit migrate`, or the migration will fail with "relation already exists".
+4. **`.env.local`** must be created from `.env.local.example` with the Supabase keys from `supabase status` output and a generated `API_KEY_ENCRYPTION_SECRET` (64-char hex).
+5. **Dev server** (`pnpm dev`) — if `.next/` cache is corrupted (Turbopack SST errors), delete the entire `.next/` directory before restarting.
