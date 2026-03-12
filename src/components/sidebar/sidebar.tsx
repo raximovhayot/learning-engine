@@ -222,6 +222,20 @@ export function Sidebar() {
         style={{ borderColor: "var(--border)" }}
       >
         <button
+          onClick={() => router.push("/learn")}
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors cursor-pointer"
+          style={{ color: "var(--text-secondary)" }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = "var(--bg-hover)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.background = "transparent")
+          }
+        >
+          <span>📚</span>
+          <span>Learn</span>
+        </button>
+        <button
           onClick={() => router.push("/settings")}
           className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors cursor-pointer"
           style={{ color: "var(--text-secondary)" }}
