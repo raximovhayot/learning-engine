@@ -4,6 +4,7 @@ import { generateObject } from "ai";
 import { createProvider } from "@/lib/ai/provider";
 import { courseSchema } from "@/lib/ai/schemas";
 import { nanoid } from "nanoid";
+import { generateSlug } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -35,8 +36,7 @@ export async function POST(request: Request) {
       maxOutputTokens: 2048,
     });
 
-    const slugBase = topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "course";
-    const slug = `${slugBase}-${nanoid(6)}`;
+    const slug = `${generateSlug(topic)}-${nanoid(6)}`;
 
     const course = await createCourse({
       title: courseStructure.title,

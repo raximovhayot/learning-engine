@@ -46,8 +46,12 @@ export function LessonPlayer({
     if (currentStep > 0) setCurrentStep((s) => s - 1);
   };
 
-  const handleExerciseComplete = (_isCorrect: boolean) => {
-    setCompletedSteps((prev) => new Set([...prev, currentStep]));
+  const handleExerciseComplete = (isCorrect: boolean) => {
+    // Mark step complete regardless of correctness so learners can proceed,
+    // but track accuracy for progress scoring
+    if (isCorrect) {
+      setCompletedSteps((prev) => new Set([...prev, currentStep]));
+    }
   };
 
   if (finished) {

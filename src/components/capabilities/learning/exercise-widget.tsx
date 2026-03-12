@@ -31,7 +31,7 @@ export function ExerciseWidget({ exercise, onComplete }: ExerciseWidgetProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ exerciseData: exercise, userAnswer, hintsUsed }),
       });
-      const data = await res.json() as { isCorrect: boolean; feedback: string };
+      const data = await res.json() as { isCorrect: boolean; feedback: string; partialCredit?: number; hint?: string };
       setIsCorrect(data.isCorrect);
       setFeedback(data.feedback);
       setSubmitted(true);
