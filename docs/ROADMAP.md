@@ -23,10 +23,10 @@
 | ESLint (flat config) | ✅ | `eslint.config.mjs` with `@next/eslint-plugin-next` (Next.js 16 removed `next lint`) |
 | Vercel AI SDK v5 | ✅ | `ai`, `@ai-sdk/google`, `@ai-sdk/react` |
 | Gemini 3.1 models | ✅ | `gemini-3.1-flash-lite-preview` as default for all agents |
-| **Database (Supabase + pgvector)** | ❌ | Planned: PostgreSQL for users, conversations, memories, progress. pgvector for semantic memory search. Currently using Zustand + localStorage only |
-| **Drizzle ORM** | ❌ | Planned: type-safe ORM with migration support. Schema designed but not implemented |
-| **Authentication (Supabase Auth)** | ❌ | Planned: sign up / login / OAuth. Currently no auth — single-user localStorage |
-| **API key encryption** | ❌ | Planned: server-side encrypted storage. Currently stored in plaintext in localStorage |
+| **Database (Supabase + pgvector)** | ✅ | PostgreSQL via local Supabase. Drizzle ORM with profiles, api_keys, conversations, messages, orchestrator_logs tables. pgvector for Phase 4 |
+| **Drizzle ORM** | ✅ | Type-safe ORM with migration support. Schema in `src/lib/db/schema.ts`, migrations in `drizzle/` |
+| **Authentication (Supabase Auth)** | ✅ | Sign up / login pages. Middleware protects routes. Auto-creates profile on registration via DB trigger |
+| **API key encryption** | ✅ | AES-256-CBC server-side encryption. Keys stored encrypted in `api_keys` table with separate IV |
 
 ---
 
@@ -225,7 +225,7 @@
 
 ## 12. Database Schema
 
-> Schema is **designed but ❌ not implemented** (no Supabase/Drizzle setup).
+> Schema is **✅ implemented** (Phase 3 tables: profiles, api_keys, conversations, messages, orchestrator_logs). Remaining tables are for future phases.
 
 ### Planned Tables
 
@@ -265,10 +265,10 @@ visualizations           — id, message_id, type, params, renderer, interactive
 ### Phase 2 — Rich Chat ✅ DONE
 > Markdown rendering, code syntax highlighting, LaTeX math (KaTeX), per-message agent badges
 
-### Phase 3 — Database & Auth ← **START HERE**
+### Phase 3 — Database & Auth ✅ DONE
 > Supabase setup, Drizzle ORM, user accounts, encrypted API key storage, conversation persistence server-side
 
-### Phase 4 — Memory System
+### Phase 4 — Memory System ← **START HERE**
 > Memory extraction, pgvector, retrieval, injection into context, memory panel UI
 
 ### Phase 5 — Learning Capability
@@ -411,7 +411,7 @@ src/
 | Multi-agent orchestrator (4 agents, auto-routing) | ✅ Done |
 | Chat UI (streaming, conversations, sidebar) | ✅ Done |
 | Rich chat (markdown, code, LaTeX) | ✅ Done |
-| Database & Auth | ❌ Not started |
+| Database & Auth | ✅ Done |
 | Memory System | ❌ Not started |
 | Learning Capability (exercises, lessons, progress) | ❌ Not started |
 | STEM Visualizations | ❌ Not started |
@@ -421,4 +421,4 @@ src/
 | Canvas / Artifacts | ❌ Not started |
 | Developer API | ❌ Not started |
 
-**~20% of the planned platform is built.** The foundation, core chat loop, and rich chat rendering are solid. The next highest-impact features to implement are: **(1) Database + Auth**, **(2) Memory system**, **(3) Learning capability with exercises**.
+**~30% of the planned platform is built.** The foundation, core chat loop, and rich chat rendering are solid. The next highest-impact features to implement are: **(1) Memory system**, **(2) Learning capability with exercises**, **(3) STEM visualizations**.

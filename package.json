@@ -11,12 +11,16 @@
   "dependencies": {
     "@ai-sdk/google": "latest",
     "@ai-sdk/react": "^3.0.118",
+    "@supabase/ssr": "^0.9.0",
+    "@supabase/supabase-js": "^2.99.1",
     "ai": "latest",
     "clsx": "latest",
+    "drizzle-orm": "^0.45.1",
     "framer-motion": "latest",
     "katex": "latest",
     "nanoid": "latest",
     "next": "latest",
+    "postgres": "^3.4.8",
     "react": "^19",
     "react-dom": "^19",
     "react-markdown": "^10.1.0",
@@ -38,14 +42,18 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
+    "drizzle-kit": "^0.31.9",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "supabase": "^2.78.1",
     "tailwindcss": "^4",
     "typescript": "latest"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "esbuild",
       "sharp",
+      "supabase",
       "unrs-resolver"
     ]
   }

@@ -19,7 +19,8 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ conversationId }: ChatInterfaceProps) {
-  const { apiKey, updateConversationTitle } = useChatStore();
+  const { apiKey, updateConversationTitle, updateServerConversationTitle, user } =
+    useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const titleUpdatedRef = useRef(false);
 
@@ -55,7 +56,11 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         if (content) {
           const title =
             content.length > 40 ? content.slice(0, 40) + "..." : content;
-          updateConversationTitle(conversationId, title);
+          if (user) {
+            updateServerConversationTitle(conversationId, title);
+          } else {
+            updateConversationTitle(conversationId, title);
+          }
           titleUpdatedRef.current = true;
         }
       }
@@ -149,7 +154,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 <button
                   key={q}
                   onClick={() => handleSend(q)}
-                  disabled={!apiKey}
+                  disabled={!apiKey && !user}
                   className="px-3 py-2 rounded-xl text-xs transition-colors border cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                   style={{
                     borderColor: "var(--border)",
@@ -213,7 +218,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <InputBar onSend={handleSend} isLoading={isLoading} disabled={!apiKey} />
+      <InputBar onSend={handleSend} isLoading={isLoading} disabled={!apiKey && !user} />
     </div>
   );
 }
