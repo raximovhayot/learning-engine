@@ -17,6 +17,7 @@ Learning Engine is a Next.js 16 AI-powered interactive learning platform with mu
 - **BYOK**: The `GOOGLE_GENERATIVE_AI_API_KEY` env var takes priority over user-provided keys. Users can enter a key in the Settings page (`/settings`) which is stored in localStorage via Zustand persist. The provider in `src/lib/ai/provider.ts` resolves keys with env var first, then user key.
 - **Multi-agent**: The orchestrator (a lightweight Gemini call) routes user messages to specialist agents (Math/Euler, Physics/Newton, Code/Ada, General/Sage). Agent definitions live in `src/lib/ai/agents.ts`.
 - **Models**: Uses `gemini-3.1-flash-lite-preview` as the default model for all agents.
+- **Rich chat (Phase 2)**: Assistant messages render markdown via `react-markdown` + `remark-gfm` + `remark-math` + `rehype-katex`. Code blocks use `react-syntax-highlighter` (Prism + oneDark). Per-message agent attribution uses AI SDK v5 `messageMetadata` in `toUIMessageStreamResponse`; the client reads `message.metadata` (typed as `unknown`, cast to `AgentMetadata`).
 
 ### Caveats
 

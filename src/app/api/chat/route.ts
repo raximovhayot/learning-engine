@@ -48,10 +48,16 @@ export async function POST(req: Request) {
   });
 
   return result.toUIMessageStreamResponse({
-    headers: {
-      "X-Agent-Id": agentId,
-      "X-Agent-Name": agent.name,
-      "X-Agent-Avatar": encodeURIComponent(agent.avatar),
+    messageMetadata: ({ part }) => {
+      if (part.type === "text-start" || part.type === "text-end") {
+        return {
+          agentId,
+          agentName: agent.name,
+          agentAvatar: agent.avatar,
+          agentDomain: agent.domain,
+        };
+      }
+      return undefined;
     },
   });
 }
