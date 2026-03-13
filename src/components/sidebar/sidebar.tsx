@@ -4,7 +4,7 @@ import { useChatStore } from "@/lib/store/chat-store";
 import { getAgentList } from "@/lib/ai/agents";
 import { formatRelativeTime } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { MemoryPanel } from "./memory-panel";
 
@@ -16,7 +16,6 @@ export function Sidebar() {
     createConversation,
     setActiveConversation,
     deleteConversation,
-    apiKey,
     user,
     setUser,
     loadConversations,
@@ -24,6 +23,18 @@ export function Sidebar() {
     deleteServerConversation,
   } = useChatStore();
   const agents = getAgentList();
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setHasApiKey(null);
+      return;
+    }
+    fetch("/api/keys")
+      .then((r) => r.json())
+      .then((data) => setHasApiKey(!!data.hasKey))
+      .catch(() => setHasApiKey(null));
+  }, [user]);
 
   useEffect(() => {
     let subscription: { unsubscribe: () => void } | null = null;
@@ -248,12 +259,12 @@ export function Sidebar() {
         >
           <span>⚙️</span>
           <span>Settings</span>
-          {!apiKey && !user && (
+          {user && hasApiKey === false && (
             <span
               className="ml-auto text-xs px-1.5 py-0.5 rounded"
               style={{ background: "var(--warning)", color: "black" }}
             >
-              Key needed
+              Setup
             </span>
           )}
         </button>

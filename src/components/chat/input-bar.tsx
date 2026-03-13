@@ -51,7 +51,7 @@ export function InputBar({ onSend, isLoading, disabled }: InputBarProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={disabled ? "Add your API key in settings to start..." : "Message Learning Engine..."}
+          placeholder="Message Learning Engine..."
           disabled={disabled}
           rows={1}
           className="flex-1 resize-none bg-transparent text-sm outline-none placeholder-gray-500"

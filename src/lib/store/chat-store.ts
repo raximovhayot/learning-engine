@@ -12,13 +12,11 @@ interface AuthUser {
 interface ChatState {
   conversations: Conversation[];
   activeConversationId: string | null;
-  apiKey: string;
   user: AuthUser | null;
   hydrated: boolean;
 
   setHydrated: (v: boolean) => void;
   setUser: (user: AuthUser | null) => void;
-  setApiKey: (key: string) => void;
   createConversation: () => string;
   setActiveConversation: (id: string | null) => void;
   updateConversationTitle: (id: string, title: string) => void;
@@ -36,14 +34,11 @@ export const useChatStore = create<ChatState>()(
     (set, get) => ({
       conversations: [],
       activeConversationId: null,
-      apiKey: "",
       user: null,
       hydrated: false,
 
       setHydrated: (v: boolean) => set({ hydrated: v }),
       setUser: (user: AuthUser | null) => set({ user }),
-
-      setApiKey: (key: string) => set({ apiKey: key }),
 
       createConversation: () => {
         const id = nanoid();
@@ -162,7 +157,6 @@ export const useChatStore = create<ChatState>()(
       name: "learning-engine-store",
       partialize: (state) => ({
         conversations: state.conversations,
-        apiKey: state.apiKey,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);

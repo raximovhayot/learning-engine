@@ -8,19 +8,54 @@ import { getRelevantMemories } from "@/lib/memory/retriever";
 import { extractMemories } from "@/lib/memory/extractor";
 import { storeMemories } from "@/lib/memory/store";
 import { visualizationTools } from "@/lib/ai/tools";
+import { rateLimit } from "@/lib/rate-limit";
+import { NextRequest } from "next/server";
 
-export async function POST(req: Request) {
-  const {
-    messages,
-    apiKey: clientApiKey,
-    agentId: requestedAgentId,
-    conversationId,
-  } = await req.json();
+// 20 requests per minute per IP (or user ID when authenticated)
+const RATE_LIMIT = 20;
+const RATE_WINDOW_MS = 60_000;
 
+export async function POST(req: NextRequest) {
+  // Rate limiting – keyed on user IP
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown";
+
+  const { allowed, remaining, resetMs } = rateLimit(
+    ip,
+    RATE_LIMIT,
+    RATE_WINDOW_MS
+  );
+
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({
+        error: "Too many requests. Please wait before sending another message.",
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(Math.ceil(resetMs / 1000)),
+        },
+      }
+    );
+  }
+
+  const { messages, agentId: requestedAgentId, conversationId } =
+    await req.json();
+
+  const responseHeaders: Record<string, string> = {
+    "X-RateLimit-Limit": String(RATE_LIMIT),
+    "X-RateLimit-Remaining": String(remaining),
+  };
+
+  // Resolve API key: env var (host override) → user's DB-stored key
   let resolvedApiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || "";
   let userId: string | null = null;
 
-  if (!resolvedApiKey) {
+  try {
     const supabase = await createClient();
     const {
       data: { user },
@@ -28,28 +63,31 @@ export async function POST(req: Request) {
 
     if (user) {
       userId = user.id;
-      const serverKey = await getUserApiKey(user.id);
-      if (serverKey) resolvedApiKey = serverKey;
+      if (!resolvedApiKey) {
+        const dbKey = await getUserApiKey(user.id);
+        if (dbKey) resolvedApiKey = dbKey;
+      }
     }
-  } else {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) userId = user.id;
+  } catch {
+    // Auth failure is non-fatal when env var key is already set
+    if (!resolvedApiKey) {
+      return new Response(
+        JSON.stringify({ error: "Authentication error. Please sign in again." }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
+      );
+    }
   }
 
-  if (!resolvedApiKey && !clientApiKey) {
+  if (!resolvedApiKey) {
     return new Response(
       JSON.stringify({
         error:
-          "No API key provided. Add your Google AI Studio key in settings.",
+          "No API key found. Please sign in and add your Google AI Studio key in Settings.",
       }),
       { status: 401, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  const effectiveKey = resolvedApiKey || clientApiKey;
   const modelMessages = await convertToModelMessages(messages);
 
   const lastUserMessage = modelMessages
@@ -66,12 +104,12 @@ export async function POST(req: Request) {
 
   let agentId = requestedAgentId;
   if (!agentId && lastUserText) {
-    agentId = await routeToAgent(lastUserText, effectiveKey);
+    agentId = await routeToAgent(lastUserText, resolvedApiKey);
   }
   agentId = agentId || "general";
 
   const agent = getAgent(agentId);
-  const google = createProvider(effectiveKey);
+  const google = createProvider(resolvedApiKey);
 
   let systemPrompt = agent.systemPrompt;
   if (userId && lastUserText) {
@@ -79,7 +117,7 @@ export async function POST(req: Request) {
       const memoryContext = await getRelevantMemories(
         userId,
         lastUserText,
-        effectiveKey
+        resolvedApiKey
       );
       if (memoryContext) {
         systemPrompt = `${agent.systemPrompt}\n\n${memoryContext}\n\nUse these memories to personalize your response. Reference what you know about the user when relevant, but don't explicitly list memories.`;
@@ -103,14 +141,14 @@ export async function POST(req: Request) {
           const extracted = await extractMemories(
             lastUserText,
             assistantText,
-            effectiveKey
+            resolvedApiKey
           );
           if (extracted.length > 0) {
             await storeMemories(
               userId,
               extracted,
               conversationId || null,
-              effectiveKey
+              resolvedApiKey
             );
           }
         } catch {
@@ -121,6 +159,7 @@ export async function POST(req: Request) {
   });
 
   return result.toUIMessageStreamResponse({
+    headers: responseHeaders,
     messageMetadata: ({ part }) => {
       if (part.type === "text-start" || part.type === "text-end") {
         return {
