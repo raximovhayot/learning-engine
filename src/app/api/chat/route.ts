@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("POST /api/chat error:", error);
     return new Response(
-      JSON.stringify({ error: "An error occurred while processing your chat request." }),
+      JSON.stringify({ error: "Failed to process chat request. Please verify your API key and try again." }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
