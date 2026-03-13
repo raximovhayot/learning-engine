@@ -1,17 +1,24 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
 /**
- * Creates the Google Generative AI provider using the server-side env var.
- * The API key is NEVER accepted from client input – it must be set via
- * the GOOGLE_GENERATIVE_AI_API_KEY environment variable.
+ * Creates the Google Generative AI provider.
+ *
+ * Key resolution order (BYOK model):
+ *   1. GOOGLE_GENERATIVE_AI_API_KEY env var – optional host-level override
+ *   2. apiKey param – caller passes the user's key retrieved from the DB
+ *
+ * The API key is NEVER accepted from the client request body.
+ * It is always resolved server-side (env var or encrypted DB record).
+ *
+ * Throws if neither source provides a non-empty key so the caller
+ * receives a clear error rather than a cryptic authentication failure.
  */
-export function createProvider() {
-  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!apiKey) {
+export function createProvider(apiKey?: string) {
+  const key = process.env.GOOGLE_GENERATIVE_AI_API_KEY || apiKey || "";
+  if (!key) {
     throw new Error(
-      "GOOGLE_GENERATIVE_AI_API_KEY environment variable is not set. " +
-        "Please configure it before starting the server."
+      "No API key available. Please add your Google AI Studio key in Settings."
     );
   }
-  return createGoogleGenerativeAI({ apiKey });
+  return createGoogleGenerativeAI({ apiKey: key });
 }

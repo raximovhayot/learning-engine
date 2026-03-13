@@ -6,7 +6,7 @@ import { useChatStore } from "@/lib/store/chat-store";
 
 export default function Home() {
   const router = useRouter();
-  const { createConversation, createServerConversation, user } =
+  const { createConversation, createServerConversation, user, hydrated } =
     useChatStore();
 
   const handleNewChat = async () => {
@@ -50,6 +50,18 @@ export default function Home() {
         >
           Start Learning →
         </button>
+        {hydrated && !user && (
+          <p className="mt-4 text-xs" style={{ color: "var(--text-muted)" }}>
+            <button
+              onClick={() => router.push("/login")}
+              className="underline cursor-pointer"
+              style={{ color: "var(--accent)" }}
+            >
+              Sign in
+            </button>{" "}
+            to save your API key and conversation history.
+          </p>
+        )}
       </main>
     </div>
   );

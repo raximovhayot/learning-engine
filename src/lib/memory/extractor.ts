@@ -42,9 +42,10 @@ Rules:
 
 export async function extractMemories(
   userMessage: string,
-  assistantMessage: string
+  assistantMessage: string,
+  apiKey?: string
 ): Promise<ExtractedMemory[]> {
-  const google = createProvider();
+  const google = createProvider(apiKey);
 
   try {
     const { object } = await generateObject({

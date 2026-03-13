@@ -7,12 +7,13 @@ import type { ExtractedMemory } from "./extractor";
 export async function storeMemories(
   userId: string,
   extracted: ExtractedMemory[],
-  conversationId: string | null
+  conversationId: string | null,
+  apiKey?: string
 ) {
   if (extracted.length === 0) return;
 
   const texts = extracted.map((m) => m.content);
-  const embeddings = await generateEmbeddings(texts);
+  const embeddings = await generateEmbeddings(texts, apiKey);
 
   const values = extracted.map((m, i) => ({
     userId,
@@ -29,9 +30,10 @@ export async function storeMemories(
 export async function searchMemories(
   userId: string,
   query: string,
-  limit = 10
+  limit = 10,
+  apiKey?: string
 ) {
-  const queryEmbedding = await generateEmbedding(query);
+  const queryEmbedding = await generateEmbedding(query, apiKey);
   const vectorStr = `[${queryEmbedding.join(",")}]`;
 
   const results = await db
