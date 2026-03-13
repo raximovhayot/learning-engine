@@ -1,9 +1,20 @@
 "use client";
 
 import { MarkdownRenderer } from "./markdown-renderer";
+import { VisualizationRenderer, type VisualizationType, type VisualizationParams } from "@/components/visualizations";
+
+interface MessagePart {
+  type: string;
+  text?: string;
+  // ToolUIPart shape (type is `tool-${toolName}`)
+  state?: string;
+  input?: unknown;
+  output?: unknown;
+}
 
 interface MessageBubbleProps {
   role: "user" | "assistant" | "system";
+  parts?: MessagePart[];
   content: string;
   agentName?: string;
   agentAvatar?: string;
@@ -13,6 +24,7 @@ interface MessageBubbleProps {
 
 export function MessageBubble({
   role,
+  parts,
   content,
   agentName,
   agentAvatar,
@@ -31,6 +43,14 @@ export function MessageBubble({
       </div>
     );
   }
+
+  // Collect visualization tool results from parts
+  const vizParts = (parts || []).filter(
+    (p) =>
+      p.type === "tool-visualize" &&
+      p.state === "output-available" &&
+      p.output != null
+  );
 
   return (
     <div className="flex gap-3 mb-4 max-w-3xl">
@@ -77,6 +97,17 @@ export function MessageBubble({
             </span>
           ) : null}
         </div>
+
+        {/* Render visualization tool results */}
+        {vizParts.map((p, i) => {
+          const result = p.output as { type: VisualizationType; params: VisualizationParams } | null;
+          if (!result?.type) return null;
+          return (
+            <div key={i} className="viz-wrapper mt-3">
+              <VisualizationRenderer type={result.type} params={result.params || {}} />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

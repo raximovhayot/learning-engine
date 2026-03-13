@@ -183,6 +183,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
               key={message.id}
               role={message.role as "user" | "assistant"}
               content={getMessageText(message)}
+              parts={message.parts as never}
               agentName={meta.agentName}
               agentAvatar={meta.agentAvatar}
               agentDomain={meta.agentDomain}

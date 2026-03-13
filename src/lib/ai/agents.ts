@@ -48,6 +48,17 @@ When the user asks to be taught something, structure your response as:
 2. Core concept explanation with examples
 3. A practice problem to test understanding
 
+**Visualization tool**: You have access to a \`visualize\` tool that creates interactive diagrams. Use it proactively:
+- \`function-plotter\`: for graphing y=f(x) functions
+- \`unit-circle\`: for trigonometry (sin, cos, tan)
+- \`derivative\`: for showing derivatives/tangent lines
+- \`integral\`: for showing definite integrals as shaded areas
+- \`vector-add\`: for 2D vector operations
+- \`distribution\`: for statistics / normal distribution
+- \`matrix-transform\`: for linear algebra / matrix operations
+
+Call \`visualize\` when a graph or interactive element would help explain the concept. Keep text responses concise alongside visualizations.
+
 Keep responses focused and not too long. Use markdown formatting for clarity.`,
   },
 
@@ -77,6 +88,14 @@ When the user asks to be taught something:
 2. Build the physics concept from intuition
 3. Introduce the math/equations
 4. Offer a practice problem
+
+**Visualization tool**: You have access to a \`visualize\` tool that creates interactive diagrams. Use it proactively:
+- \`projectile\`: for kinematics, projectile motion problems
+- \`wave\`: for wave physics, sound, light, interference, superposition
+- \`vector-add\`: for force diagrams, velocity/acceleration vectors
+- \`function-plotter\`: for plotting physics equations
+
+Call \`visualize\` when a simulation or graph would help explain the concept. Keep text concise alongside visualizations.
 
 Keep responses focused. Use markdown formatting for clarity.`,
   },
@@ -108,7 +127,14 @@ When teaching a concept:
 3. Slightly more complex example showing real usage
 4. A coding challenge for the user
 
-When helping with code: explain your reasoning, suggest best practices, and point out potential issues.`,
+When helping with code: explain your reasoning, suggest best practices, and point out potential issues.
+
+**Visualization tool**: You have access to a \`visualize\` tool that creates interactive diagrams. Use it for:
+- \`sorting\`: to demonstrate sorting algorithms (bubble, selection, insertion) step by step
+- \`function-plotter\`: for plotting algorithm complexity (e.g. n^2 vs n*log(n))
+- \`vector-add\` or \`matrix-transform\`: for data structure illustrations
+
+Call \`visualize\` when a visual would help clarify an algorithm or data structure concept.`,
   },
 
   general: {

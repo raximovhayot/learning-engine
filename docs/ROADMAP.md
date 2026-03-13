@@ -123,7 +123,22 @@
 
 ## 7. STEM Visualization Engine
 
-> The visualization system is **❌ not yet implemented**. `framer-motion` and `katex` are installed but unused.
+> **Phase 6 ✅ DONE** — 10 interactive SVG/React visualizations built. AI agents call the `visualize` tool to render them inline in chat.
+
+### Implemented Visualizations (Phase 6)
+
+| Visualization | Type Key | Subject | Features |
+|--------------|----------|---------|---------|
+| Function Plotter | `function-plotter` | Algebra / Calculus | Plot 1–2 functions y=f(x), adjustable range |
+| Unit Circle | `unit-circle` | Trigonometry | sin/cos/tan, drag angle slider |
+| Vector Addition | `vector-add` | Linear Algebra / Physics | Tip-to-tail + resultant, adjustable components |
+| Projectile Motion | `projectile` | Mechanics | Animated launch, adjustable v₀ and angle |
+| Derivative Viz | `derivative` | Calculus | Tangent line at point, adjustable x |
+| Integral Viz | `integral` | Calculus | Shaded area, numerical integration with n sliders |
+| Wave Superposition | `wave` | Physics / Waves | Animated waves, add second wave, phase/freq/amp |
+| Sorting Algorithms | `sorting` | CS Algorithms | Bubble/selection/insertion, animated step-through |
+| Normal Distribution | `distribution` | Statistics | μ/σ sliders, probability region highlighting |
+| Matrix Transform | `matrix-transform` | Linear Algebra | 2×2 matrix applied to shapes, determinant display |
 
 ### Renderer Stack (All ❌)
 
@@ -274,8 +289,8 @@ visualizations           — id, message_id, type, params, renderer, interactive
 ### Phase 5 — Learning Capability ✅ DONE
 > Exercise generation, answer checking, lesson player, progress tracking, spaced repetition
 
-### Phase 6 — Visualizations v1
-> 10 core STEM visualizations (function plotter, projectile motion, vectors, unit circle, etc.), inline rendering
+### Phase 6 — Visualizations v1 ✅ DONE
+> 10 interactive STEM visualizations: function plotter, unit circle, vector addition, projectile motion, derivative, integral, wave superposition, sorting algorithms, normal distribution, matrix transform. All rendered inline in chat via AI tool calling (`visualize` tool). Agents proactively invoke visualizations when relevant.
 
 ### Phase 7 — Code Capability
 > Sandpack integration, inline code execution, algorithm visualization
