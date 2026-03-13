@@ -7,6 +7,7 @@ import {
   jsonb,
   real,
   vector,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const profiles = pgTable("profiles", {
@@ -121,3 +122,108 @@ export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
 export type Memory = typeof memories.$inferSelect;
 export type NewMemory = typeof memories.$inferInsert;
+
+export const courses = pgTable("courses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  subject: text("subject").notNull(),
+  description: text("description"),
+  difficulty: text("difficulty").notNull().default("beginner"),
+  isAiGenerated: boolean("is_ai_generated").notNull().default(false),
+  authorId: uuid("author_id").references(() => profiles.id, { onDelete: "set null" }),
+  xpReward: integer("xp_reward").notNull().default(100),
+  estimatedMinutes: integer("estimated_minutes").notNull().default(30),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const units = pgTable("units", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  orderIndex: integer("order_index").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const lessons = pgTable("lessons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  unitId: uuid("unit_id").notNull().references(() => units.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: text("type").notNull().default("lesson"),
+  orderIndex: integer("order_index").notNull().default(0),
+  estimatedMinutes: integer("estimated_minutes").notNull().default(10),
+  xpReward: integer("xp_reward").notNull().default(50),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const lessonSteps = pgTable("lesson_steps", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  lessonId: uuid("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  orderIndex: integer("order_index").notNull().default(0),
+  contentData: jsonb("content_data"),
+  exerciseData: jsonb("exercise_data"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const userExerciseHistory = pgTable("user_exercise_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  lessonStepId: uuid("lesson_step_id").references(() => lessonSteps.id, { onDelete: "set null" }),
+  courseId: uuid("course_id").references(() => courses.id, { onDelete: "set null" }),
+  exerciseData: jsonb("exercise_data").notNull(),
+  userAnswer: text("user_answer").notNull(),
+  isCorrect: boolean("is_correct").notNull(),
+  aiFeedback: text("ai_feedback"),
+  hintsUsed: integer("hints_used").notNull().default(0),
+  timeSpentSeconds: integer("time_spent_seconds"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const learningProgress = pgTable("learning_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  courseId: uuid("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  lessonId: uuid("lesson_id").references(() => lessons.id, { onDelete: "set null" }),
+  completedSteps: integer("completed_steps").notNull().default(0),
+  totalSteps: integer("total_steps").notNull().default(0),
+  score: integer("score").notNull().default(0),
+  xpEarned: integer("xp_earned").notNull().default(0),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const reviewQueue = pgTable("review_queue", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  exerciseData: jsonb("exercise_data").notNull(),
+  subject: text("subject").notNull(),
+  topic: text("topic").notNull(),
+  easeFactor: real("ease_factor").notNull().default(2.5),
+  interval: integer("interval").notNull().default(1),
+  repetitions: integer("repetitions").notNull().default(0),
+  nextReviewAt: timestamp("next_review_at", { withTimezone: true }).notNull().defaultNow(),
+  lastReviewedAt: timestamp("last_reviewed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type Course = typeof courses.$inferSelect;
+export type NewCourse = typeof courses.$inferInsert;
+export type Unit = typeof units.$inferSelect;
+export type NewUnit = typeof units.$inferInsert;
+export type Lesson = typeof lessons.$inferSelect;
+export type NewLesson = typeof lessons.$inferInsert;
+export type LessonStep = typeof lessonSteps.$inferSelect;
+export type NewLessonStep = typeof lessonSteps.$inferInsert;
+export type UserExerciseHistory = typeof userExerciseHistory.$inferSelect;
+export type NewUserExerciseHistory = typeof userExerciseHistory.$inferInsert;
+export type LearningProgress = typeof learningProgress.$inferSelect;
+export type NewLearningProgress = typeof learningProgress.$inferInsert;
+export type ReviewQueueItem = typeof reviewQueue.$inferSelect;
+export type NewReviewQueueItem = typeof reviewQueue.$inferInsert;

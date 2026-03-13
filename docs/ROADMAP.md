@@ -102,22 +102,22 @@
 
 ## 6. Learning Capability
 
-> The interactive learning system is **❌ not yet implemented**. Agents have teaching-oriented system prompts but no structured exercises, progress tracking, or spaced repetition.
+> The interactive learning system is **✅ implemented** in Phase 5.
 
 | Feature | Status | Details |
 |---------|--------|---------|
-| **Exercise generation** | ❌ | `generateObject()` with Zod schemas: `{ type, prompt, options, correctAnswer, hints }` |
-| **Exercise types** | ❌ | MCQ, fill-in-blank, free-text, code editor, drag-and-drop, math input, conversational |
-| **Answer checking with AI** | ❌ | AI evaluates free-form answers, gives detailed feedback |
-| **Progressive hints** | ❌ | Tool: `getHint(stepNumber)` gives increasingly specific hints |
-| **Lesson player** | ❌ | Step-through UI: content steps + exercise steps, progress bar, XP reward |
-| **Lesson structure** | ❌ | Courses → Units → Lessons → Steps (content + exercises) |
-| **AI course generator** | ❌ | User describes topic → AI generates full course structure with `generateObject` |
-| **Pre-built courses** | ❌ | Planned MVP: 3 courses (Math, Programming, Science), 10 lessons each |
-| **Spaced repetition** | ❌ | SM-2 algorithm, review queue with scheduling |
-| **Progress tracking** | ❌ | Per-lesson completion, scores, proficiency per topic |
-| **Learning dashboard** | ❌ | Overview: courses in progress, recent lessons, weak areas, review queue |
-| **Daily challenges** | ❌ | One curated problem per day across subjects |
+| **Exercise generation** | ✅ | `generateObject()` with Zod schemas: `{ type, prompt, options, correctAnswer, hints }` in `src/lib/ai/schemas.ts` |
+| **Exercise types** | ✅ | MCQ, fill-in-blank, free-text — rendered by `ExerciseWidget` component |
+| **Answer checking with AI** | ✅ | AI evaluates free-form answers via `/api/exercises/check`, gives detailed feedback |
+| **Progressive hints** | ✅ | `/api/exercises/hint` returns hints by index (3 hints per exercise) |
+| **Lesson player** | ✅ | Step-through UI in `LessonPlayer` component with progress bar and XP reward screen |
+| **Lesson structure** | ✅ | Courses → Units → Lessons → Steps (content + exercises) in DB schema |
+| **AI course generator** | ✅ | `POST /api/courses` generates full course structure with `generateObject` from topic input |
+| **Pre-built courses** | ✅ | 3 seed courses (Math Fundamentals, Python Basics, Science Basics) in `src/lib/db/seeds/courses.ts` |
+| **Spaced repetition** | ✅ | SM-2 algorithm in `src/lib/gamification/spaced-repetition.ts`, review queue via `/api/review` |
+| **Progress tracking** | ✅ | Per-lesson completion and scores via `learning_progress` table and `/api/progress` |
+| **Learning dashboard** | ✅ | `/learn` page with daily challenge, review queue, and course grid |
+| **Daily challenges** | ✅ | AI-generated daily challenge via `/api/daily-challenge` (deterministic per day) |
 
 ---
 
@@ -271,7 +271,7 @@ visualizations           — id, message_id, type, params, renderer, interactive
 ### Phase 4 — Memory System ✅ DONE
 > Memory extraction, pgvector, retrieval, injection into context, memory panel UI
 
-### Phase 5 — Learning Capability ← **START HERE**
+### Phase 5 — Learning Capability ✅ DONE
 > Exercise generation, answer checking, lesson player, progress tracking, spaced repetition
 
 ### Phase 6 — Visualizations v1
@@ -413,7 +413,7 @@ src/
 | Rich chat (markdown, code, LaTeX) | ✅ Done |
 | Database & Auth | ✅ Done |
 | Memory System | ✅ Done |
-| Learning Capability (exercises, lessons, progress) | ❌ Not started |
+| Learning Capability (exercises, lessons, progress) | ✅ Done |
 | STEM Visualizations | ❌ Not started |
 | Code Execution | ❌ Not started |
 | Gamification | ❌ Not started |
