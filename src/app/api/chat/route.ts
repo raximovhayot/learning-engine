@@ -88,88 +88,96 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const modelMessages = await convertToModelMessages(messages);
+  try {
+    const modelMessages = await convertToModelMessages(messages);
 
-  const lastUserMessage = modelMessages
-    .filter((m) => m.role === "user")
-    .pop();
-  const lastUserText =
-    lastUserMessage && typeof lastUserMessage.content === "string"
-      ? lastUserMessage.content
-      : lastUserMessage &&
-          Array.isArray(lastUserMessage.content) &&
-          lastUserMessage.content[0]?.type === "text"
-        ? lastUserMessage.content[0].text
-        : "";
+    const lastUserMessage = modelMessages
+      .filter((m) => m.role === "user")
+      .pop();
+    const lastUserText =
+      lastUserMessage && typeof lastUserMessage.content === "string"
+        ? lastUserMessage.content
+        : lastUserMessage &&
+            Array.isArray(lastUserMessage.content) &&
+            lastUserMessage.content[0]?.type === "text"
+          ? lastUserMessage.content[0].text
+          : "";
 
-  let agentId = requestedAgentId;
-  if (!agentId && lastUserText) {
-    agentId = await routeToAgent(lastUserText, resolvedApiKey);
-  }
-  agentId = agentId || "general";
-
-  const agent = getAgent(agentId);
-  const google = createProvider(resolvedApiKey);
-
-  let systemPrompt = agent.systemPrompt;
-  if (userId && lastUserText) {
-    try {
-      const memoryContext = await getRelevantMemories(
-        userId,
-        lastUserText,
-        resolvedApiKey
-      );
-      if (memoryContext) {
-        systemPrompt = `${agent.systemPrompt}\n\n${memoryContext}\n\nUse these memories to personalize your response. Reference what you know about the user when relevant, but don't explicitly list memories.`;
-      }
-    } catch {
-      // Memory retrieval failed silently
+    let agentId = requestedAgentId;
+    if (!agentId && lastUserText) {
+      agentId = await routeToAgent(lastUserText, resolvedApiKey);
     }
-  }
+    agentId = agentId || "general";
 
-  const result = streamText({
-    model: google(agent.model),
-    system: systemPrompt,
-    messages: modelMessages,
-    temperature: agent.temperature,
-    maxOutputTokens: 4096,
-    tools: visualizationTools,
-    stopWhen: stepCountIs(3),
-    onFinish: async ({ text: assistantText }) => {
-      if (userId && lastUserText && assistantText) {
-        try {
-          const extracted = await extractMemories(
-            lastUserText,
-            assistantText,
-            resolvedApiKey
-          );
-          if (extracted.length > 0) {
-            await storeMemories(
-              userId,
-              extracted,
-              conversationId || null,
+    const agent = getAgent(agentId);
+    const google = createProvider(resolvedApiKey);
+
+    let systemPrompt = agent.systemPrompt;
+    if (userId && lastUserText) {
+      try {
+        const memoryContext = await getRelevantMemories(
+          userId,
+          lastUserText,
+          resolvedApiKey
+        );
+        if (memoryContext) {
+          systemPrompt = `${agent.systemPrompt}\n\n${memoryContext}\n\nUse these memories to personalize your response. Reference what you know about the user when relevant, but don't explicitly list memories.`;
+        }
+      } catch {
+        // Memory retrieval failed silently
+      }
+    }
+
+    const result = streamText({
+      model: google(agent.model),
+      system: systemPrompt,
+      messages: modelMessages,
+      temperature: agent.temperature,
+      maxOutputTokens: 4096,
+      tools: visualizationTools,
+      stopWhen: stepCountIs(3),
+      onFinish: async ({ text: assistantText }) => {
+        if (userId && lastUserText && assistantText) {
+          try {
+            const extracted = await extractMemories(
+              lastUserText,
+              assistantText,
               resolvedApiKey
             );
+            if (extracted.length > 0) {
+              await storeMemories(
+                userId,
+                extracted,
+                conversationId || null,
+                resolvedApiKey
+              );
+            }
+          } catch {
+            // Memory extraction failed silently
           }
-        } catch {
-          // Memory extraction failed silently
         }
-      }
-    },
-  });
+      },
+    });
 
-  return result.toUIMessageStreamResponse({
-    headers: responseHeaders,
-    messageMetadata: ({ part }) => {
-      if (part.type === "text-start" || part.type === "text-end") {
-        return {
-          agentId,
-          agentName: agent.name,
-          agentAvatar: agent.avatar,
-          agentDomain: agent.domain,
-        };
-      }
-      return undefined;
-    },
-  });
+    return result.toUIMessageStreamResponse({
+      headers: responseHeaders,
+      messageMetadata: ({ part }) => {
+        if (part.type === "text-start" || part.type === "text-end") {
+          return {
+            agentId,
+            agentName: agent.name,
+            agentAvatar: agent.avatar,
+            agentDomain: agent.domain,
+          };
+        }
+        return undefined;
+      },
+    });
+  } catch (error) {
+    console.error("POST /api/chat error:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to process chat request. Please verify your API key and try again." }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }
