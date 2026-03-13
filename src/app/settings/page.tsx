@@ -32,7 +32,13 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          messages: [{ role: "user", content: "Say hi in one word." }],
+          messages: [
+            {
+              id: "test-msg",
+              role: "user",
+              parts: [{ type: "text", text: "Say hi in one word." }],
+            },
+          ],
           apiKey: keyInput,
           agentId: "general",
         }),

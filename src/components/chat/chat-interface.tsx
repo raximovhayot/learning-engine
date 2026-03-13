@@ -65,7 +65,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         }
       }
     }
-  }, [messages, conversationId, updateConversationTitle]);
+  }, [messages, conversationId, updateConversationTitle, updateServerConversationTitle, user]);
 
   const handleSend = (content: string) => {
     sendMessage({ text: content });

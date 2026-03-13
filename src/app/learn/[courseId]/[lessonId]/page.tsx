@@ -55,6 +55,7 @@ export default async function LessonPage({ params }: PageProps) {
 
           <LessonPlayer
             lessonId={lesson.id}
+            courseId={courseId}
             lessonTitle={lesson.title}
             xpReward={lesson.xpReward}
             steps={steps}
