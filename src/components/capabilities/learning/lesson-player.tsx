@@ -4,6 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ExerciseWidget } from "./exercise-widget";
+import { useChatStore } from "@/lib/store/chat-store";
 import type { LessonStep } from "@/lib/db/schema";
 import type { Exercise } from "@/lib/ai/schemas";
 
@@ -14,16 +15,20 @@ interface ContentData {
 
 interface LessonPlayerProps {
   lessonId: string;
+  courseId: string;
   lessonTitle: string;
   xpReward: number;
   steps: LessonStep[];
 }
 
 export function LessonPlayer({
+  lessonId,
+  courseId,
   lessonTitle,
   xpReward,
   steps,
 }: LessonPlayerProps) {
+  const { user } = useChatStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const [finished, setFinished] = useState(false);
@@ -34,11 +39,31 @@ export function LessonPlayer({
     totalSteps > 0 ? (completedSteps.size / totalSteps) * 100 : 0;
 
   const handleNext = () => {
-    setCompletedSteps((prev) => new Set([...prev, currentStep]));
+    const newCompleted = new Set([...completedSteps, currentStep]);
+    setCompletedSteps(newCompleted);
     if (currentStep < totalSteps - 1) {
       setCurrentStep((s) => s + 1);
     } else {
       setFinished(true);
+      // Persist lesson completion if the user is authenticated
+      if (user) {
+        fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseId,
+            lessonId,
+            completedSteps: newCompleted.size,
+            totalSteps,
+            score: Math.round((newCompleted.size / totalSteps) * 100),
+            xpEarned: xpReward,
+            isCompleted: true,
+            completedAt: new Date().toISOString(),
+          }),
+        }).catch((err) => {
+          console.error("Failed to save lesson progress:", err);
+        });
+      }
     }
   };
 

@@ -1,4 +1,4 @@
-import { streamText, convertToModelMessages } from "ai";
+import { streamText, convertToModelMessages, stepCountIs } from "ai";
 import { createProvider } from "@/lib/ai/provider";
 import { getAgent } from "@/lib/ai/agents";
 import { routeToAgent } from "@/lib/ai/orchestrator";
@@ -7,6 +7,7 @@ import { getUserApiKey } from "@/lib/db/queries";
 import { getRelevantMemories } from "@/lib/memory/retriever";
 import { extractMemories } from "@/lib/memory/extractor";
 import { storeMemories } from "@/lib/memory/store";
+import { visualizationTools } from "@/lib/ai/tools";
 
 export async function POST(req: Request) {
   const {
@@ -94,6 +95,8 @@ export async function POST(req: Request) {
     messages: modelMessages,
     temperature: agent.temperature,
     maxOutputTokens: 4096,
+    tools: visualizationTools,
+    stopWhen: stepCountIs(3),
     onFinish: async ({ text: assistantText }) => {
       if (userId && lastUserText && assistantText) {
         try {
