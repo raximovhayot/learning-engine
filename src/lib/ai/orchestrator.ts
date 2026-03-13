@@ -4,11 +4,8 @@ import { AGENTS } from "./agents";
 
 const VALID_AGENT_IDS = ["math", "physics", "code", "general"];
 
-export async function routeToAgent(
-  userMessage: string,
-  apiKey?: string
-): Promise<string> {
-  const google = createProvider(apiKey);
+export async function routeToAgent(userMessage: string): Promise<string> {
+  const google = createProvider();
   const orchestrator = AGENTS.orchestrator;
 
   try {

@@ -19,7 +19,7 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ conversationId }: ChatInterfaceProps) {
-  const { apiKey, updateConversationTitle, updateServerConversationTitle, user } =
+  const { updateConversationTitle, updateServerConversationTitle, user } =
     useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const titleUpdatedRef = useRef(false);
@@ -28,9 +28,9 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { apiKey, conversationId },
+        body: { conversationId },
       }),
-    [apiKey, conversationId]
+    [conversationId]
   );
 
   const { messages, status, sendMessage, error } = useChat({
@@ -154,8 +154,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 <button
                   key={q}
                   onClick={() => handleSend(q)}
-                  disabled={!apiKey && !user}
-                  className="px-3 py-2 rounded-xl text-xs transition-colors border cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                  className="px-3 py-2 rounded-xl text-xs transition-colors border cursor-pointer"
                   style={{
                     borderColor: "var(--border)",
                     color: "var(--text-secondary)",
@@ -219,7 +218,7 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <InputBar onSend={handleSend} isLoading={isLoading} disabled={!apiKey && !user} />
+      <InputBar onSend={handleSend} isLoading={isLoading} />
     </div>
   );
 }

@@ -1,20 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { useChatStore } from "@/lib/store/chat-store";
 
 export default function Home() {
   const router = useRouter();
-  const { apiKey, user, hydrated, createConversation, createServerConversation } =
+  const { createConversation, createServerConversation, user } =
     useChatStore();
-
-  useEffect(() => {
-    if (hydrated && !apiKey && !user) {
-      router.push("/settings");
-    }
-  }, [apiKey, user, hydrated, router]);
 
   const handleNewChat = async () => {
     if (user) {
@@ -57,11 +50,6 @@ export default function Home() {
         >
           Start Learning →
         </button>
-        {hydrated && !apiKey && !user && (
-          <p className="mt-4 text-xs" style={{ color: "var(--warning)" }}>
-            ⚠️ Add your Google AI Studio API key in Settings first
-          </p>
-        )}
       </main>
     </div>
   );

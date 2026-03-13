@@ -2,10 +2,9 @@ import { searchMemories } from "./store";
 
 export async function getRelevantMemories(
   userId: string,
-  query: string,
-  apiKey?: string
+  query: string
 ): Promise<string> {
-  const results = await searchMemories(userId, query, 8, apiKey);
+  const results = await searchMemories(userId, query, 8);
 
   if (results.length === 0) return "";
 

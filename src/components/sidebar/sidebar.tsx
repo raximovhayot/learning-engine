@@ -16,7 +16,6 @@ export function Sidebar() {
     createConversation,
     setActiveConversation,
     deleteConversation,
-    apiKey,
     user,
     setUser,
     loadConversations,
@@ -248,14 +247,6 @@ export function Sidebar() {
         >
           <span>⚙️</span>
           <span>Settings</span>
-          {!apiKey && !user && (
-            <span
-              className="ml-auto text-xs px-1.5 py-0.5 rounded"
-              style={{ background: "var(--warning)", color: "black" }}
-            >
-              Key needed
-            </span>
-          )}
         </button>
         {user ? (
           <button

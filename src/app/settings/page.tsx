@@ -1,67 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useChatStore } from "@/lib/store/chat-store";
 import { Sidebar } from "@/components/sidebar/sidebar";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { apiKey, setApiKey } = useChatStore();
-  const [keyInput, setKeyInput] = useState(apiKey);
-  const [saved, setSaved] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
-
-  const handleSave = () => {
-    setApiKey(keyInput);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  const handleTest = async () => {
-    if (!keyInput) return;
-    setTesting(true);
-    setTestResult(null);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [
-            {
-              id: "test-msg",
-              role: "user",
-              parts: [{ type: "text", text: "Say hi in one word." }],
-            },
-          ],
-          apiKey: keyInput,
-          agentId: "general",
-        }),
-      });
-
-      if (response.ok) {
-        setTestResult({ success: true, message: "API key works! Connection to Gemini successful." });
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setTestResult({
-          success: false,
-          message: data.error || `Failed with status ${response.status}`,
-        });
-      }
-    } catch (err) {
-      setTestResult({
-        success: false,
-        message: `Connection error: ${err instanceof Error ? err.message : "Unknown error"}`,
-      });
-    } finally {
-      setTesting(false);
-    }
-  };
 
   return (
     <div className="flex h-screen">
@@ -83,82 +26,8 @@ export default function SettingsPage() {
             Settings
           </h1>
           <p className="text-sm mb-8" style={{ color: "var(--text-secondary)" }}>
-            Configure your API keys and preferences.
+            View and manage your learning experience.
           </p>
-
-          <section
-            className="p-6 rounded-2xl border mb-6"
-            style={{
-              background: "var(--bg-secondary)",
-              borderColor: "var(--border)",
-            }}
-          >
-            <h2
-              className="text-lg font-semibold mb-1"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Google AI Studio API Key
-            </h2>
-            <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
-              Get your free key at{" "}
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "var(--accent)" }}
-              >
-                aistudio.google.com/apikey
-              </a>
-            </p>
-
-            <input
-              type="password"
-              value={keyInput}
-              onChange={(e) => setKeyInput(e.target.value)}
-              placeholder="AIza..."
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none border mb-4"
-              style={{
-                background: "var(--bg-tertiary)",
-                borderColor: "var(--border)",
-                color: "var(--text-primary)",
-              }}
-            />
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer"
-                style={{ background: "var(--accent)", color: "white" }}
-              >
-                {saved ? "✓ Saved!" : "Save Key"}
-              </button>
-              <button
-                onClick={handleTest}
-                disabled={!keyInput || testing}
-                className="px-4 py-2 rounded-xl text-sm font-medium transition-colors border cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{
-                  borderColor: "var(--border)",
-                  color: "var(--text-secondary)",
-                }}
-              >
-                {testing ? "Testing..." : "Test Connection"}
-              </button>
-            </div>
-
-            {testResult && (
-              <div
-                className="mt-4 p-3 rounded-lg text-sm"
-                style={{
-                  background: testResult.success
-                    ? "rgba(34,197,94,0.1)"
-                    : "rgba(239,68,68,0.1)",
-                  color: testResult.success ? "var(--success)" : "var(--danger)",
-                }}
-              >
-                {testResult.success ? "✓" : "✕"} {testResult.message}
-              </div>
-            )}
-          </section>
 
           <section
             className="p-6 rounded-2xl border"
